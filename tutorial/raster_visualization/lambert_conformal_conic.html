@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Display a planar view with iTowns</title>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        #viewerDiv {
+            margin: auto;
+            height: 100%;
+            width: 100%;
+            padding: 0;
+        }
+
+        canvas {
+            display: block
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewerDiv"></div>
+    <script src="../../itowns/dist_2.44.2/itowns.js"></script>
+    <script type="text/javascript">
+        // Create a view
+        const viewerDiv = document.getElementById('viewerDiv');
+
+        /**
+        +proj=lcc: Lambert Conformal Conic projection
+        +lat_1=49: First standard parallel at 49 degrees north
+        +lat_2=44: Second standard parallel at 44 degrees north
+        +lat_0=46.5: Latitude of origin at 46.5 degrees north
+        +lon_0=3: Central meridian at 3 degrees east
+        +x_0=700000: False easting of 700,000 meters
+        +y_0=6600000: False northing of 6,600,000 meters
+        +ellps=GRS80: GRS80 ellipsoid
+        +towgs84=0,0,0,0,0,0,0: No datum shift parameters
+        +units=m: Units in meters
+        +no_defs: No additional definitions 
+         */
+        itowns.proj4.defs(
+            'EPSG:2154',
+            '+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+        );
+        const viewExtent = new itowns.Extent(
+            'EPSG:2154',
+            644500.0, 659499.99,
+            6857500.0, 6867499.99,
+        );
+
+        // Let the camera to target the center of the extend
+        const placement = {
+            coord: viewExtent.center(),
+            tilt: 12,
+            heading: 40,
+            range: 16000,
+        }
+
+        const view = new itowns.PlanarView(viewerDiv, viewExtent, {
+            placement: placement,
+        });
+
+        // Add a color layer
+        const sourceOrtho = new itowns.WMSSource({
+            url: "https://data.geopf.fr/wms-r/wms?",
+            name: "OI.OrthoimageCoverage.HR",
+            format: 'image/png',
+            crs: 'EPSG:2154',
+            extent: viewExtent,
+        });
+        const layerOrtho = new itowns.ColorLayer('Ortho', { source: sourceOrtho });
+        view.addLayer(layerOrtho);
+
+        // Add an elevation layer
+        const sourceDEM = new itowns.WMSSource({
+            url: "https://data.geopf.fr/wms-r/wms?",
+            name: "ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES",
+            format: "image/x-bil;bits=32",
+            crs: 'EPSG:2154',
+            extent: viewExtent,
+        });
+        const layerDEM = new itowns.ElevationLayer('DEM', { source: sourceDEM });
+        view.addLayer(layerDEM);
+    </script>
+</body>
+
+</html>

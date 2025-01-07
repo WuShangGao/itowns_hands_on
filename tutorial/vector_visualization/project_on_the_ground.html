@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vector data on ground</title>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        #viewerDiv {
+            margin: auto;
+            height: 100%;
+            width: 100%;
+            padding: 0;
+        }
+
+        canvas {
+            display: block
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewerDiv"></div>
+    <script src="../../itowns/dist_2.44.2/itowns.js"></script>
+    <script type="text/javascript">
+
+        // Retrieve the view container
+        const viewerDiv = document.getElementById('viewerDiv');
+
+        // Define the camera initial placement
+        const placement = {
+            coord: new itowns.Coordinates('EPSG:4326', 3.05, 48.97),
+            range: 15000,
+        };
+
+        // Create the view
+        const view = new itowns.GlobeView(viewerDiv, placement);
+
+        // Define the source of the ortho-images
+        const orthoSource = new itowns.WMTSSource({
+            url: 'https://data.geopf.fr/wmts?',
+            crs: "EPSG:3857",
+            name: 'ORTHOIMAGERY.ORTHOPHOTOS',
+            tileMatrixSet: 'PM',
+            format: 'image/jpeg',
+        });
+
+        // Create the ortho-images ColorLayer and add it to the view
+        const orthoLayer = new itowns.ColorLayer('Ortho', {
+            source: orthoSource,
+        });
+        view.addLayer(orthoLayer);
+
+        // Define the source of the dem data
+        const elevationSource = new itowns.WMTSSource({
+            url: 'https://data.geopf.fr/wmts?',
+            crs: 'EPSG:4326',
+            name: 'ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3',
+            tileMatrixSet: 'WGS84G',
+            format: 'image/x-bil;bits=32',
+            zoom: { min: 3, max: 10 },
+        });
+        // Create the DEM ElevationLayer and add it to the view
+        const elevationLayer = new itowns.ElevationLayer('DEM', {
+            source: elevationSource,
+        });
+        view.addLayer(elevationLayer);
+
+
+        const floodSource = new itowns.FileSource({
+            url: '../../datasets/geojson/multipolygon.geojson',
+            crs: 'EPSG:4326',
+            format: 'application/json',
+        });
+
+        const floodStyle = {
+            fill: {
+                color: 'cyan',
+                opacity: 0.5,
+            },
+            stroke: {
+                color: 'blue',
+            },
+        };
+
+        const floodLayer = new itowns.ColorLayer('flood', {
+            source: floodSource,
+            style: floodStyle,
+        });
+        view.addLayer(floodLayer);
+
+
+        const citySource = new itowns.FileSource({
+            url: '../../datasets/geojson/cities.geojson',
+            crs: 'EPSG:4326',
+            format: 'application/json',
+        });
+
+        const cityStyle = {
+            stroke: {
+                color: 'red',
+                opacity: 0.8,
+            },
+            fill: {
+                // color: 'white',
+                opacity: 0.0, // default is 1.0, which would case the 'black' fill;
+            },
+            point: {
+                color: 'white',
+                line: 'red',
+                radius: 3,
+            },
+            text: {
+                field: '{name}',
+                anchor: 'bottom-left',
+                size: 18,
+                haloColor: 'white',
+                haloWidth: 1,
+                font: ['monospace'],
+            },
+        };
+
+        const cityLayer = new itowns.ColorLayer('cities', {
+            source: citySource,
+            style: cityStyle,
+            addLabelLayer: true,
+        });
+        view.addLayer(cityLayer);
+
+
+    </script>
+</body>
+
+</html>

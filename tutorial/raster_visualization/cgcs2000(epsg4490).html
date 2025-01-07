@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Simple globe with iTowns</title>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        #viewerDiv {
+            margin: auto;
+            height: 100%;
+            width: 100%;
+            padding: 0;
+        }
+
+        canvas {
+            display: block
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewerDiv"></div>
+    <script src="../../itowns/dist_2.44.2/itowns.js"></script>
+    <script type="text/javascript">
+        const viewerDiv = document.getElementById('viewerDiv');
+        const placement = {
+            coord: new itowns.Coordinates('EPSG:4326', 2.35, 48.85),
+            range: 25e6
+        };
+        const view = new itowns.GlobeView(viewerDiv, placement);
+
+        const orthoSource = new itowns.WMTSSource({
+            url: 'https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/WMTS',
+            name: 'World_Imagery',
+            format: 'image/png',
+            projection: 'EPSG:3857',
+            tileMatrixSet: 'EPSG:3857',
+            zoom: {
+                min: 2,
+                max: 19,
+            },
+        });
+
+        const orthoLayer = new itowns.ColorLayer('Ortho', {
+            source: orthoSource,
+        });
+
+        view.addLayer(orthoLayer);
+    </script>
+</body>
+
+</html>
